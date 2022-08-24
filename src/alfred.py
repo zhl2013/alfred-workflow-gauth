@@ -15,11 +15,31 @@ python3 yourscript.py "{query}" arg2 arg3 ...
 """
 
 
+
+def readPlist(filePath):
+    try:
+        with open(filePath, 'rb') as fp:
+            pl = plistlib.load(fp)
+            return pl
+    except :
+        pass
+    
+    return {}
+
+def writePlist(pl,fileName):
+    try:
+        with open(fileName, 'wb') as fp:
+            plistlib.dump(pl, fp)
+    except:
+        print("write to file error")
+
+
 UNESCAPE_CHARACTERS = u""" ;()"""
 
 _MAX_RESULTS_DEFAULT = 9
 
-preferences = plistlib.readPlist('info.plist')
+# preferences = plistlib.readPlist('info.plist')
+preferences = readPlist('info.plist')
 bundleid = preferences['bundleid']
 
 
@@ -28,7 +48,7 @@ class Item(object):
     def unicode(cls, value):
         try:
             items = value.items()
-        except AttributeError:
+        except :
             return str(value)
         else:
             return dict(map(str, item) for item in items)
@@ -102,8 +122,8 @@ def _create(path):
 
 def work(volatile):
     path = {
-        True: '~/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data',
-        False: '~/Library/Application Support/Alfred 2/Workflow Data'
+        True: '~/Library/Caches/com.runningwithcrayons.Alfred/Workflow Data',
+        False: '~/Library/Application Support/Alfred/Workflow Data'
     }[bool(volatile)]
     return _create(os.path.join(os.path.expanduser(path), bundleid))
 
@@ -111,18 +131,21 @@ def work(volatile):
 def config_set(key, value, volatile=True):
     filepath = os.path.join(work(volatile), 'config.plist')
     try:
-        conf = plistlib.readPlist(filepath)
-    except IOError:
+        # conf = plistlib.readPlist(filepath)
+        conf = readPlist(filepath)
+    except :
         conf = {}
     conf[key] = value
-    plistlib.writePlist(conf, filepath)
+    writePlist(conf,filepath)
+    # plistlib.writePlist(conf, filepath)
 
 
 def config_get(key, default=None, volatile=True):
     filepath = os.path.join(work(volatile), 'config.plist')
     try:
-        conf = plistlib.readPlist(filepath)
-    except IOError:
+        # conf = plistlib.readPlist(filepath)
+        conf = readPlist(filepath)
+    except :
         conf = {}
     if key in conf:
         return conf[key]
